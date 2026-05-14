@@ -1,63 +1,91 @@
-# Safepoint
+# SafePoint
 
-A public safety data API for Canadian developers, providing structured access to alerts, incidents, recalls, and other safety information from official Canadian government sources.
+A multi-tenant public safety data platform that enables government agencies to upload, manage, and expose structured safety data through a unified REST API.
 
-> **Status:** In active development. Weather alerts pipeline is live; additional content types in progress.
+> **Status:** In active development. Agency auth, incident pipeline, and manual input ingestion are live. CSV ingestion pipeline in progress.
 
 ---
 
 ## Why this exists
 
-Public safety information in Canada is scattered across multiple federal and provincial agencies - Environment Canada, Health Canada, CFIA, CCCS, WSIB, CCOHS - each with its own data format, update cadence, and access pattern. Developers building civic apps, dashboards, community tools, or content platforms typically have to scrape, normalize, and stitch these sources together themselves.
+I spent six years as a firefighter in Jamaica before transitioning to tech in Canada. On both sides I kept running into the same problem: public safety information exists, but it's scattered, inconsistent, and impossible to work with programmatically.
 
-Safepoint centralizes this data behind a single REST API with consistent schemas, pagination, and filtering, so consumers can focus on what they're building instead of how they're sourcing data.
+In Canada, data is spread across federal and provincial agencies with no unified access layer. In Jamaica and across the Caribbean, the problem is worse - many agencies have no structured data infrastructure at all. Reports are handwritten, filed in spreadsheets, or buried in PDFs on government websites.
+
+SafePoint solves this at the source. Instead of scraping and normalizing data from the outside, SafePoint gives agencies the tools to upload their own data in whatever format they have, CSV exports, manual dashboard entries - and normalizes everything into a consistent schema behind a single REST API. The result is reliable, queryable, multi-agency safety data that developers can actually build on.
+
+---
+
+## How it works
+
+SafePoint is a B2G (business-to-government) platform with three layers:
+
+**Agency layer** - Government agencies log into a dashboard and submit safety data via CSV upload or manual input. Each agency's data is normalized, validated, and stored under their account.
+
+**Data layer** - All submitted data is normalized into consistent schemas, tagged by agency and country, and stored in a shared multi-tenant MongoDB database. Agencies can only access and manage their own data.
+
+**API layer** - Any developer or citizen can query the public REST API to retrieve safety data by content type, country, incident type, severity, status, and more.
 
 ---
 
 ## Tech stack
 
 - **Backend:** Node.js, Express, MongoDB (Mongoose)
-- **Scheduling:** `node-cron` for periodic data fetches
-- **Frontend (docs site):** React, TypeScript, Tailwind CSS
+- **Auth:** JWT via httpOnly cookies
+- **Validation:** Joi
+- **File ingestion:** Multer, csv-parse
+- **Scheduling:** node-cron
+- **Frontend:** React, TypeScript, Tailwind CSS
 - **Hosting:** Render (API), Netlify (docs)
 
 ---
 
 ## Architecture
 
+### Multi-tenancy
+
+All data lives in a shared database. Every document is tagged with `orgID` and `country` at the point of ingestion - enforced server-side from the verified JWT. Agencies can only read, update, or delete their own records.
+
+### Ingestion methods (MVP)
+
+| Method       | Description                                                                                     |
+| ------------ | ----------------------------------------------------------------------------------------------- |
+| Manual input | Schema-driven dashboard form with dropdowns, date pickers, and validated text fields            |
+| CSV upload   | File upload with agency-defined column mapping templates and exception queue for unknown values |
+
+PDF ingestion and AI-assisted normalization are planned for v2.
+
+### Template system (CSV)
+
+When an agency uploads a CSV for the first time, they map their column names to SafePoint's standard fields and define value mappings for enum fields (e.g. "KGN" → Kingston). That template is saved and applied automatically to every future upload from that agency. Unknown values that don't match a saved mapping are routed to an exception queue for the agency to resolve - resolutions are added to the template automatically.
+
+### Duplicate detection
+
+Incidents are checked against a time window before saving. The window varies by incident type - a hurricane has a 72 hour window, a robbery has 2 hours. If a potential duplicate is detected the submission returns a 409 with the existing record. Agency staff can review and force-submit if it's a genuine new incident.
+
 ### Endpoint structure
 
-Endpoints are organized by **content type**, with **category** as a query parameter:
+Endpoints are organized by content type:
 
+```js
+GET  /api/v1/incidents?country=Jamaica&type=robbery&severity=high
+GET  /api/v1/incidents/:id
+POST /api/v1/incidents         (protected - agency staff only)
+PATCH /api/v1/incidents/:id    (protected - agency staff only)
+DELETE /api/v1/incidents/:id   (protected - agency staff only)
 ```
-/v1/alerts?category=weather&location=toronto&limit=20&offset=0
-```
-
-This keeps the URL space flat and predictable, while letting consumers filter by domain.
-
-### Content types
-
-`alerts` `tips` `resources` `incidents` `recalls` `statistics` `regulations` `guidelines`
-
-### Categories
-
-`fire` `flood` `tornado` `weather` `chemical` `occupational` `cybersecurity` `vehicle` `food` `consumer`
-
-### Data sources
-
-Pulled from official Canadian government APIs:
-
-- **Environment Canada** (`api.weather.gc.ca`) — weather alerts
-- **Health Canada / CFIA** — health and food recalls
-- **CCCS** — cybersecurity advisories
-- **WSIB / CCOHS** — occupational safety
 
 ### Project structure
 
-```
-safepoint/
+```js
+SafePoint/
+├── config/
+│   └── duplicateWindows.js
 ├── controllers/
 ├── middleware/
+│   ├── joi/
+│   ├── paginate.js
+│   └── verifyStaff.js
 ├── models/
 ├── routes/
 └── utils/
@@ -68,17 +96,24 @@ safepoint/
 
 ---
 
-## What's built so far
+## User types
 
-The **weather alerts pipeline** is complete and serves as the reference implementation for the remaining content types:
+| User         | Access                                                             |
+| ------------ | ------------------------------------------------------------------ |
+| Agency staff | Dashboard login, data upload, template management, exception queue |
+| Developers   | Public API access, API docs                                        |
+| Public       | Public homepage with safety stats                                  |
 
-- Ontario cities reference map with in-memory caching (`getCities`)
-- Weather fetcher using `Promise.all` with `on*` wildcard filter for Ontario regions
-- Mongoose schema for weather alerts
-- `bulkWrite` upsert for deduplication across fetches
-- Hourly `node-cron` job + startup fetch on server boot (`saveWeatherAlerts('startup')`)
-- `paginate` middleware attaching `req.limit` / `req.offset` / `req.location`
-- `getAlerts` controller returning a pagination envelope: `previous`, `next`, `total`, `data`, `disclaimer`
+---
+
+## What's built
+
+- Organization and OrgUser schemas with JWT auth
+- Agency login, verifyStaff middleware
+- Incident schema with full enum validation, compound indexes, and duplicate detection
+- Joi validation middleware per content type
+- Manual input pipeline - POST, GET list, GET single, PATCH, DELETE
+- Pagination middleware - limit, offset, next/previous links
 
 ---
 
@@ -86,50 +121,48 @@ The **weather alerts pipeline** is complete and serves as the reference implemen
 
 ### MVP (in progress)
 
-- Rate limiting via `express-rate-limit`
-- Build out the remaining seven content type pipelines following the weather alerts pattern
-
-### Post-MVP
-
-- Admin dashboard
-- Expansion beyond Ontario to additional provinces
+- CSV ingestion pipeline - Multer, csv-parse, template system, exception queue
+- Remaining content type pipelines
+- Agency dashboard frontend
+- Public homepage with live safety stats
+- API documentation site
 
 ---
 
 ## Sample response
 
-`GET /api/v1/alerts?category=weather&location=toronto&limit=1&offset=0`
+`GET /api/v1/incidents?country=Jamaica&type=robbery&severity=high&limit=1`
 
 ```json
 {
 	"previous": null,
-	"total": 167,
-	"category": "weather",
-	"next": "https://api.safepoint.kevonsenior.com/api/v1/alerts?category=weather&offset=2&limit=2",
+	"total": 12,
+	"filters": { "country": "Jamaica", "type": "robbery", "severity": "high" },
+	"next": "https://api.SafePoint.kevonsenior.com/api/v1/incidents?country=Jamaica&type=robbery&severity=high&offset=1&limit=1",
 	"data": [
 		{
-			"sourceID": "on-142_e",
-			"city": "Toronto",
-			"region": "Toronto and York Region",
-			"category": "weather",
-			"locationCoordinates": [43.7, -79.42],
-			"currentConditions": {
-				"temperature": 14,
-				"humidity": 72,
-				"windSpeed": 19,
-				"windGust": 0,
-				"windChill": 0
+			"country": "Jamaica",
+			"location": {
+				"state": "Kingston",
+				"address": "Seaview Gardens, Kingston 11"
 			},
-			"todayForecast": "Mainly cloudy. 40 percent chance of showers in the afternoon. Wind becoming northwest 20 km/h in the afternoon. High 16.",
-			"warnings": [],
+			"date": "2026-05-13T00:00:00.000Z",
+			"details": "Armed robbery reported outside a local supermarket",
+			"type": "robbery",
+			"severity": "high",
+			"status": "ongoing",
+			"warnings": ["Area is considered dangerous", "Avoid the location"],
+			"reportedBy": "Citizen report",
 			"source": {
-				"name": "Environment and Climate Change Canada",
-				"url": "https://api.weather.gc.ca"
+				"name": "JCF Kingston Division",
+				"url": "https://jcf.gov.jm"
 			},
-			"lastUpdated": "2026-04-24T14:00:00.000Z"
+			"evidence": [],
+			"createdAt": "2026-05-13T20:36:15.592Z",
+			"updatedAt": "2026-05-13T20:36:15.592Z"
 		}
 	],
-	"disclaimer": "This information was gather from Environment and Climate Change Canada, please do your due diligence to verify the data before use."
+	"disclaimer": "This data was pulled from JCF Kingston Division database, please do your due diligence to verify the data before use."
 }
 ```
 
@@ -137,7 +170,5 @@ The **weather alerts pipeline** is complete and serves as the reference implemen
 
 ## Deployment
 
-- **API:** [`api.safepoint.kevonsenior.com`](https://api.safepoint.kevonsenior.com) — Render
-- **DNS:** configured through Netlify, pointing the API subdomain to Render
-
----
+- **API:** [`api.SafePoint.kevonsenior.com`](https://api.safepoint.kevonsenior.com) - Render
+- **DNS:** Configured through Netlify, pointing the API subdomain to Render

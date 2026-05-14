@@ -7,6 +7,6 @@
 import cron from 'node-cron';
 import saveWeatherAlerts from '../fetchers/alerts/weather/saveWeatherAlerts.js';
 
-cron.schedule('0 * * *  *', async () => {
-	saveWeatherAlerts('cron');
-});
+// cron.schedule('0 * * *  *', async () => {
+// 	saveWeatherAlerts('cron');
+// });
