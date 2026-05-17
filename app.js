@@ -3,6 +3,7 @@
  */
 
 import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import limiter from './middleware/rateLimiter.js';
@@ -16,6 +17,20 @@ const port = process.env.PORT || 8000;
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
+
+const corsOrigin =
+	process.env.NODE_ENV === 'production'
+		? 'https://safepoint.kevonsenior.com'
+		: 'http://localhost:3000';
+
+app.use(
+	cors({
+		origin: corsOrigin,
+		credentials: true,
+		methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+		allowedHeaders: ['Content-Type', 'Authorization'],
+	}),
+);
 
 app.use(limiter);
 app.use('/api/v1', routes);
