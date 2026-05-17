@@ -18,14 +18,14 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-const corsOrigin =
+const corsOrigins =
 	process.env.NODE_ENV === 'production'
-		? 'https://safepoint.kevonsenior.com'
-		: 'http://localhost:3000';
+		? ['https://safepoint.kevonsenior.com', 'http://localhost:3000']
+		: ['http://localhost:3000'];
 
 app.use(
 	cors({
-		origin: corsOrigin,
+		origin: corsOrigins,
 		credentials: true,
 		methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
 		allowedHeaders: ['Content-Type', 'Authorization'],
