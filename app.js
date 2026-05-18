@@ -20,7 +20,7 @@ app.use(cookieParser());
 
 const corsOrigins =
 	process.env.NODE_ENV === 'production'
-		? ['https://safepoint.kevonsenior.com', 'http://localhost:3000']
+		? ['https://civron.io', 'http://localhost:3000']
 		: ['http://localhost:3000'];
 
 app.use(
@@ -33,7 +33,7 @@ app.use(
 );
 
 app.use(limiter);
-app.use('/api/v1', routes);
+app.use('/v1', routes);
 
 connectDB().catch((error) => console.error('Database connection error', error));
 

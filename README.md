@@ -1,4 +1,4 @@
-# SafePoint
+# Civron
 
 A multi-tenant public safety data platform that enables government agencies to upload, manage, and expose structured safety data through a unified REST API.
 
@@ -12,13 +12,13 @@ I spent six years as a firefighter in Jamaica before transitioning to tech in Ca
 
 In Canada, data is spread across federal and provincial agencies with no unified access layer. In Jamaica and across the Caribbean, the problem is worse - many agencies have no structured data infrastructure at all. Reports are handwritten, filed in spreadsheets, or buried in PDFs on government websites.
 
-SafePoint solves this at the source. Instead of scraping and normalizing data from the outside, SafePoint gives agencies the tools to upload their own data in whatever format they have, CSV exports, manual dashboard entries - and normalizes everything into a consistent schema behind a single REST API. The result is reliable, queryable, multi-agency safety data that developers can actually build on.
+Civron solves this at the source. Instead of scraping and normalizing data from the outside, Civron gives agencies the tools to upload their own data in whatever format they have, CSV exports, manual dashboard entries - and normalizes everything into a consistent schema behind a single REST API. The result is reliable, queryable, multi-agency safety data that developers can actually build on.
 
 ---
 
 ## How it works
 
-SafePoint is a B2G (business-to-government) platform with three layers:
+Civron is a B2G (business-to-government) platform with three layers:
 
 **Agency layer** - Government agencies log into a dashboard and submit safety data via CSV upload or manual input. Each agency's data is normalized, validated, and stored under their account.
 
@@ -35,8 +35,8 @@ SafePoint is a B2G (business-to-government) platform with three layers:
 - **Validation:** Joi
 - **File ingestion:** Multer, csv-parse
 - **Scheduling:** node-cron
-- **Frontend:** React, TypeScript, Tailwind CSS
-- **Hosting:** Render (API), Netlify (docs)
+- **Frontend:** Next.js, TypeScript, Tailwind CSS
+- **Hosting:** Render (API), Vercel (frontend)
 
 ---
 
@@ -57,7 +57,7 @@ PDF ingestion and AI-assisted normalization are planned for v2.
 
 ### Template system (CSV)
 
-When an agency uploads a CSV for the first time, they map their column names to SafePoint's standard fields and define value mappings for enum fields (e.g. "KGN" → Kingston). That template is saved and applied automatically to every future upload from that agency. Unknown values that don't match a saved mapping are routed to an exception queue for the agency to resolve - resolutions are added to the template automatically.
+When an agency uploads a CSV for the first time, they map their column names to Civron's standard fields and define value mappings for enum fields (e.g. "KGN" → Kingston). That template is saved and applied automatically to every future upload from that agency. Unknown values that don't match a saved mapping are routed to an exception queue for the agency to resolve - resolutions are added to the template automatically.
 
 ### Duplicate detection
 
@@ -65,20 +65,18 @@ Incidents are checked against a time window before saving. The window varies by 
 
 ### Endpoint structure
 
-Endpoints are organized by content type:
-
 ```js
-GET  /api/v1/incidents?country=Jamaica&type=robbery&severity=high
-GET  /api/v1/incidents/:id
-POST /api/v1/incidents         (protected - agency staff only)
-PATCH /api/v1/incidents/:id    (protected - agency staff only)
-DELETE /api/v1/incidents/:id   (protected - agency staff only)
+GET    /v1/incidents?country=Jamaica&type=robbery&severity=high
+GET    /v1/incidents/:id
+POST   /v1/incidents         (protected - agency staff only)
+PATCH  /v1/incidents/:id     (protected - agency staff only)
+DELETE /v1/incidents/:id     (protected - agency staff only)
 ```
 
 ### Project structure
 
-```js
-SafePoint/
+```
+civron-api/
 ├── config/
 │   └── duplicateWindows.js
 ├── controllers/
@@ -131,14 +129,14 @@ SafePoint/
 
 ## Sample response
 
-`GET /api/v1/incidents?country=Jamaica&type=robbery&severity=high&limit=1`
+`GET /v1/incidents?country=Jamaica&type=robbery&severity=high&limit=1`
 
 ```json
 {
 	"previous": null,
 	"total": 12,
 	"filters": { "country": "Jamaica", "type": "robbery", "severity": "high" },
-	"next": "https://api.SafePoint.kevonsenior.com/api/v1/incidents?country=Jamaica&type=robbery&severity=high&offset=1&limit=1",
+	"next": "https://api.civron.io/v1/incidents?country=Jamaica&type=robbery&severity=high&offset=1&limit=1",
 	"data": [
 		{
 			"country": "Jamaica",
@@ -170,5 +168,5 @@ SafePoint/
 
 ## Deployment
 
-- **API:** [`api.SafePoint.kevonsenior.com`](https://api.safepoint.kevonsenior.com) - Render
-- **DNS:** Configured through Netlify, pointing the API subdomain to Render
+- **API:** [`api.civron.io`](https://api.civron.io) - Render
+- **DNS:** Configured through Namecheap
