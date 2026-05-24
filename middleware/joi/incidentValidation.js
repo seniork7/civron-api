@@ -4,6 +4,7 @@
  */
 
 import Joi from 'joi';
+import { INCIDENT_TYPE_VALUES } from '../../config/incidentTypes.js';
 
 const incidentValidationSchema = Joi.object({
 	location: Joi.object({
@@ -17,43 +18,7 @@ const incidentValidationSchema = Joi.object({
 
 	details: Joi.string().min(10).max(5000).required(),
 
-	type: Joi.string()
-		.valid(
-			'flood',
-			'hurricane',
-			'earthquake',
-			'landslide',
-			'drought',
-			'tsunami',
-			'fire',
-			'explosion',
-			'homicide',
-			'shooting',
-			'robbery',
-			'assault',
-			'kidnapping',
-			'domestic_violence',
-			'drug_related',
-			'gang_related',
-			'disease_outbreak',
-			'food_contamination',
-			'chemical_exposure',
-			'mass_casualty',
-			'road_accident',
-			'power_outage',
-			'water_disruption',
-			'building_collapse',
-			'marine_incident',
-			'oil_spill',
-			'coastal_flooding',
-			'pollution',
-			'deforestation',
-			'hazardous_waste',
-			'civil_unrest',
-			'missing_person',
-			'other',
-		)
-		.required(),
+	type: Joi.string().valid(...INCIDENT_TYPE_VALUES).required(),
 
 	severity: Joi.string()
 		.valid('high', 'medium', 'low', 'none')

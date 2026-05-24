@@ -4,6 +4,7 @@
  */
 
 import mongoose from 'mongoose';
+import { INCIDENT_TYPE_VALUES } from '../config/incidentTypes.js';
 
 const { Schema, model } = mongoose;
 
@@ -23,41 +24,7 @@ const incidentSchema = new Schema(
 		details: { type: String, required: true },
 		type: {
 			type: String,
-			enum: [
-				'flood',
-				'hurricane',
-				'earthquake',
-				'landslide',
-				'drought',
-				'tsunami',
-				'fire',
-				'explosion',
-				'homicide',
-				'shooting',
-				'robbery',
-				'assault',
-				'kidnapping',
-				'domestic_violence',
-				'drug_related',
-				'gang_related',
-				'disease_outbreak',
-				'food_contamination',
-				'chemical_exposure',
-				'mass_casualty',
-				'road_accident',
-				'power_outage',
-				'water_disruption',
-				'building_collapse',
-				'marine_incident',
-				'oil_spill',
-				'coastal_flooding',
-				'pollution',
-				'deforestation',
-				'hazardous_waste',
-				'civil_unrest',
-				'missing_person',
-				'other',
-			],
+			enum: INCIDENT_TYPE_VALUES,
 			required: true,
 		},
 		severity: {
