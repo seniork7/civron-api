@@ -1,4 +1,12 @@
-export const INCIDENT_TYPES = [
+/**
+ * ? This file defines the different types of incidents that can be
+ * ? reported. Each incident type has a value and a label for display
+ * ? purposes. The `incidentTypeValues` array provides the incidentValidation.js
+ * ? and incidentSchema.js files with the valid incident types for validation and
+ * ? database schema definition
+ */
+
+export const incidentTypes = [
 	{ value: 'flood', label: 'Flood' },
 	{ value: 'hurricane', label: 'Hurricane' },
 	{ value: 'earthquake', label: 'Earthquake' },
@@ -34,4 +42,4 @@ export const INCIDENT_TYPES = [
 	{ value: 'other', label: 'Other' },
 ];
 
-export const INCIDENT_TYPE_VALUES = INCIDENT_TYPES.map((type) => type.value);
+export const incidentTypeValues = incidentTypes.map((type) => type.value);

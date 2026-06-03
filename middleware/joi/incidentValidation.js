@@ -4,7 +4,7 @@
  */
 
 import Joi from 'joi';
-import { INCIDENT_TYPE_VALUES } from '../../config/incidentTypes.js';
+import { incidentTypeValues } from '../../config/incidentTypes.js';
 
 const incidentValidationSchema = Joi.object({
 	location: Joi.object({
@@ -18,7 +18,7 @@ const incidentValidationSchema = Joi.object({
 
 	details: Joi.string().min(10).max(5000).required(),
 
-	type: Joi.string().valid(...INCIDENT_TYPE_VALUES).required(),
+	type: Joi.string().valid(...incidentTypeValues).required(),
 
 	severity: Joi.string()
 		.valid('high', 'medium', 'low', 'none')

@@ -10,11 +10,13 @@ import resourcesRoutes from './resourcesRoute.js';
 import recallsRoutes from './recallsRoute.js';
 import alertsRoutes from './alertsRoute.js';
 import incidentRoutes from './incidentRoute.js';
+import templateRoutes from './orgUploadTemplateRoute.js';
 
 const router = express.Router();
 
 router.get('/', indexController);
 router.use('/auth', authRoutes);
+router.use('/templates', templateRoutes);
 router.use('/incidents', incidentRoutes);
 // router.use('/tips', tipsRoutes);
 // router.use('/resources', resourcesRoutes);

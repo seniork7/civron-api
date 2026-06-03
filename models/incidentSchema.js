@@ -4,7 +4,7 @@
  */
 
 import mongoose from 'mongoose';
-import { INCIDENT_TYPE_VALUES } from '../config/incidentTypes.js';
+import { incidentTypeValues } from '../config/incidentTypes.js';
 
 const { Schema, model } = mongoose;
 
@@ -22,11 +22,7 @@ const incidentSchema = new Schema(
 		},
 		date: { type: Date, required: true },
 		details: { type: String, required: true },
-		type: {
-			type: String,
-			enum: INCIDENT_TYPE_VALUES,
-			required: true,
-		},
+		type: { type: String, enum: incidentTypeValues, required: true },
 		severity: {
 			type: String,
 			enum: ['high', 'medium', 'low', 'none'],
@@ -54,6 +50,4 @@ incidentSchema.index({ country: 1, type: 1 });
 
 incidentSchema.index({ orgID: 1, status: 1 });
 
-const Incident = model('Incident', incidentSchema);
-
-export default Incident;
+export default model('Incident', incidentSchema);

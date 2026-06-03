@@ -1,7 +1,7 @@
-import { INCIDENT_TYPES } from '../config/incidentTypes.js';
+import { incidentTypes } from '../config/incidentTypes.js';
 
 const getIncidentMeta = (req, res) => {
-	res.json({ types: INCIDENT_TYPES });
+	res.json({ types: incidentTypes });
 };
 
 export default getIncidentMeta;
