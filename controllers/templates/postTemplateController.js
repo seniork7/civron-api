@@ -1,5 +1,5 @@
 /**
- * ? Controller for creating a new CSV template. It checks if a template
+ * ? Controller for creating a new upload template. It checks if a template
  * ? already exists for the organization, validates the completeness of
  * ? the column mappings against required fields, and saves the new template
  * ? to the database if valid

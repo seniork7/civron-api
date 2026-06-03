@@ -1,12 +1,10 @@
 /**
- * ? This schema is a template for storing an organization csv header
- * ? values that maps to incident schema fields. This allows organizations
- * ? to upload csv files with different header names and map them to the
- * ? correct fields in the incident schema.
- * ? The `isMappingComplete` field indicates whether the required fields
- * ? are mapped, which can be used to enforce validation before allowing
- * ? incident uploads. The `columnMappings` array stores the mapping of csv
- * ? headers to incident schema fields
+ * ? This schema stores an organization's upload template — the mapping of
+ * ? their file's column headers to Civron's incident schema fields. This allows
+ * ? organizations to upload files with different header names and have them
+ * ? automatically mapped to the correct fields on subsequent uploads.
+ * ? The `isMappingComplete` field indicates whether all required fields are
+ * ? mapped. The `columnMappings` array stores each header-to-field mapping.
  */
 
 import mongoose from 'mongoose';
@@ -20,12 +18,12 @@ const { Schema, model } = mongoose;
 const columnMappingSchema = new Schema(
 	{
 		schemaField: { type: String, enum: mappableFieldPaths, required: true },
-		csvHeader: { type: String, required: true },
+		columnHeader: { type: String, required: true },
 	},
 	{ _id: false },
 );
 
-const csvTemplateSchema = new Schema(
+const uploadTemplateSchema = new Schema(
 	{
 		orgID: {
 			type: Schema.Types.ObjectId,
@@ -45,4 +43,4 @@ const csvTemplateSchema = new Schema(
 	{ timestamps: true },
 );
 
-export default model('OrgUploadTemplate', csvTemplateSchema);
+export default model('OrgUploadTemplate', uploadTemplateSchema);

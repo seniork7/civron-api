@@ -1,6 +1,6 @@
 /**
  * ? This file defines the template version and the fields that can be
- * ? mapped to the organization csv headers. Each field has a label for
+ * ? mapped to the organization's upload file column headers. Each field has a label for
  * ? display purposes, a path that corresponds to the field in the incident
  * ? object, and a required flag that indicates whether the field is required
  * ? for a valid incident report. The `mappableFieldPaths` and `requiredFieldPaths`

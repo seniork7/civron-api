@@ -1,5 +1,5 @@
 /**
- * ? Controller for updating an existing CSV template. It checks
+ * ? Controller for updating an existing upload template. It checks
  * ? for the existence of a template for the organization, validates
  * ? the completeness of the column mappings against required fields,
  * ? and updates the template in the database
