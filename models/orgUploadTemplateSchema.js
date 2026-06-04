@@ -18,7 +18,7 @@ const { Schema, model } = mongoose;
 const columnMappingSchema = new Schema(
 	{
 		schemaField: { type: String, enum: mappableFieldPaths, required: true },
-		columnHeader: { type: String, required: true },
+		fileHeader: { type: String, required: true },
 	},
 	{ _id: false },
 );

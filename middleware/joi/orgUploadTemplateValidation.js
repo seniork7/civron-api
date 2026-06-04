@@ -11,7 +11,7 @@ const uploadTemplateValidationSchema = Joi.object({
 	columnMappings: Joi.array()
 		.items(
 			Joi.object({
-				columnHeader: Joi.string().max(100).required(),
+				fileHeader: Joi.string().max(100).required(),
 				schemaField: Joi.string()
 					.valid(...mappableFieldPaths)
 					.required(),
