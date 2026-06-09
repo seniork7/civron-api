@@ -15,10 +15,14 @@ const incidentSchema = new Schema(
 			ref: 'Organization',
 			required: true,
 		},
+		externalID: { type: String },
 		country: { type: String, required: true },
 		location: {
 			state: { type: String, required: true },
 			address: { type: String },
+			city: { type: String },
+			latitude: { type: Number },
+			longitude: { type: Number },
 		},
 		date: { type: Date, required: true },
 		details: { type: String, required: true },
@@ -28,6 +32,8 @@ const incidentSchema = new Schema(
 			enum: ['high', 'medium', 'low', 'none'],
 			default: 'low',
 		},
+		injuries: { type: Number },
+		fatalities: { type: Number },
 		status: {
 			type: String,
 			enum: ['pending', 'ongoing', 'resolved'],
@@ -42,12 +48,27 @@ const incidentSchema = new Schema(
 		},
 		source: { name: { type: String }, url: { type: String } },
 		evidence: [{ type: String }],
+		customFields: { type: Map, of: mongoose.Schema.Types.Mixed },
 	},
 	{ timestamps: true },
 );
 
+// Filter by country & incident type
 incidentSchema.index({ country: 1, type: 1 });
 
+// Filter incidents by status
 incidentSchema.index({ orgID: 1, status: 1 });
+
+// Prevent duplicate external IDs within an org (only when one exists)
+incidentSchema.index(
+	{ orgID: 1, externalID: 1 },
+	{
+		unique: true,
+		partialFilterExpression: { externalID: { $exists: true } },
+	},
+);
+
+// Makes any customFields.* key queryable
+incidentSchema.index({ 'customFields.$**': 1 });
 
 export default model('Incident', incidentSchema);
