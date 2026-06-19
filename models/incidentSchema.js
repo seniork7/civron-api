@@ -5,6 +5,7 @@
 
 import mongoose from 'mongoose';
 import { incidentTypeValues } from '../config/incidentTypes.js';
+import { severityValues, statusValues } from '../config/incidentEnums.js';
 
 const { Schema, model } = mongoose;
 
@@ -27,18 +28,10 @@ const incidentSchema = new Schema(
 		date: { type: Date, required: true },
 		details: { type: String, required: true },
 		type: { type: String, enum: incidentTypeValues, required: true },
-		severity: {
-			type: String,
-			enum: ['high', 'medium', 'low', 'none'],
-			default: 'low',
-		},
+		severity: { type: String, enum: severityValues, default: 'low' },
 		injuries: { type: Number },
 		fatalities: { type: Number },
-		status: {
-			type: String,
-			enum: ['pending', 'ongoing', 'resolved'],
-			default: 'pending',
-		},
+		status: { type: String, enum: statusValues, default: 'pending' },
 		warnings: [{ type: String }],
 		reportedBy: { type: String },
 		createdBy: {
