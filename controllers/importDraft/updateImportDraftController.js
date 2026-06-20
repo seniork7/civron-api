@@ -4,11 +4,12 @@
  * ? it notices the change inside the Mixed `records` field before saving
  */
 
+import mongoose from 'mongoose';
 import ImportDraft from '../../models/importDraftSchema.js';
 import { applyCellEdit } from '../../utils/importRecords.js';
 
 const updateImportDraft = async (req, res) => {
-	const { orgID } = req.staff;
+	const { orgID, id: staffID } = req.staff;
 	const { id } = req.params;
 	const { rowId, schemaField, value } = req.body;
 
@@ -37,6 +38,7 @@ const updateImportDraft = async (req, res) => {
 
 		applyCellEdit(record, schemaField, value, draft.dateFormat);
 		draft.markModified('records');
+		draft.updatedBy = staffID;
 		await draft.save();
 
 		res.status(200).json({

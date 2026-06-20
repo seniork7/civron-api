@@ -40,6 +40,11 @@ const importDraftSchema = new Schema(
 			ref: 'OrgUser',
 			required: true,
 		},
+		updatedBy: {
+			type: Schema.Types.ObjectId,
+			ref: 'OrgUser',
+			required: true,
+		},
 		dateFormat: { type: String, required: true },
 		// The mapped columns for current draft. If the agency later uploads another file
 		// and changes their template, this draft's columns stay preserved
@@ -53,9 +58,16 @@ const importDraftSchema = new Schema(
 		committedIncidentIds: [
 			{ type: Schema.Types.ObjectId, ref: 'Incident' },
 		],
+		// A short code of the uploaded file's rows to tell when the
+		// same file is uploaded again so the staff can resume that
+		// draft instead of duplicating it
+		contentHash: { type: String },
 	},
 	{ timestamps: true },
 );
+
+// An index to look up an in-progress draft by its short code
+importDraftSchema.index({ orgID: 1, status: 1, contentHash: 1 });
 
 // Auto cleanup so drafts do not stay in the DB for too long
 importDraftSchema.index(
