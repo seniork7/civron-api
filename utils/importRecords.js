@@ -10,7 +10,7 @@
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import { randomUUID } from 'node:crypto';
-import { incidentTypeValues } from '../config/incidentTypes.js';
+import { incidentTypes, incidentTypeValues } from '../config/incidentTypes.js';
 import { severityValues, statusValues } from '../config/incidentEnums.js';
 import { requiredFieldPaths } from '../config/uploadFieldMap.js';
 
@@ -59,6 +59,39 @@ function getNestedValue(obj, path) {
 	return path.split('.').reduce((node, key) => node?.[key], obj);
 }
 
+// Build a few versions of the chosen date format to accept dates whether or
+// not they have a leading zero
+function tolerantDateFormats(dateFormat) {
+	return [
+		...new Set([
+			dateFormat,
+			dateFormat.replace('MM', 'M').replace('DD', 'D'),
+			dateFormat.replace('MM', 'M'),
+			dateFormat.replace('DD', 'D'),
+		]),
+	];
+}
+
+// Tidy an enum value to the official one, ignoring case
+// Returns the official value, or the original if it don't recognise it
+function normaliseEnum(field, value) {
+	const text = String(value).trim().toLowerCase();
+
+	// type: match the value or its label
+	if (field === 'type') {
+		const match = incidentTypes.find(
+			(t) =>
+				t.value.toLowerCase() === text ||
+				t.label.toLowerCase() === text,
+		);
+		return match ? match.value : value;
+	}
+
+	// severity / status: match the value, ignoring case (e.g. "High" -> "high")
+	const match = allowedValues[field].find((v) => v.toLowerCase() === text);
+	return match ?? value;
+}
+
 // Convert one raw spreadsheet cell into its proper type
 // If a date/number can't be parsed we keep the original text so staff
 // can see and fix it on the review page
@@ -66,10 +99,19 @@ function convertCell(field, rawValue, dateFormat) {
 	const value = typeof rawValue === 'string' ? rawValue.trim() : rawValue;
 	if (isEmpty(value)) return undefined;
 
-	// Parse text into a real date using the agency's
-	// format and 'true' for strict match
+	// Excel dates come in already parsed (ISO), so use them as is
+	// Otherwise read the text using the agency's format
 	if (dateFields.has(field)) {
-		const parsed = dayjs(String(value), dateFormat, true);
+		const text = String(value);
+
+		// Already a real date from Excel
+		if (/^\d{4}-\d{2}-\d{2}T/.test(text)) {
+			const isoDate = dayjs(text);
+			if (isoDate.isValid()) return isoDate.toDate();
+		}
+
+		// Read the text against the agency's format ('true' = strict)
+		const parsed = dayjs(text, tolerantDateFormats(dateFormat), true);
 		return parsed.isValid() ? parsed.toDate() : value;
 	}
 
@@ -77,6 +119,12 @@ function convertCell(field, rawValue, dateFormat) {
 	if (numberFields.has(field)) {
 		const number = Number(value);
 		return Number.isNaN(number) ? value : number;
+	}
+
+	// Enum fields (type / severity / status): tidy to the official value so
+	// "High" or the label "Assault" match instead of getting flagged
+	if (field in allowedValues) {
+		return normaliseEnum(field, value);
 	}
 
 	return value;
